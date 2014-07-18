@@ -3,7 +3,7 @@
 
  Go stats reporting / ticker utility.
 
- View the [docs](godoc.org/pkg/github.com/segmentio/go-stats).
+ View the [docs](http://godoc.org/pkg/github.com/segmentio/go-stats).
 
 ## Example
 
