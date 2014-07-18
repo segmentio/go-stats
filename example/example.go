@@ -6,7 +6,6 @@ import "time"
 func main() {
 	s := stats.New()
 
-	// faux work
 	go func() {
 		for {
 			s.IncrBy("messages", 5)
@@ -15,8 +14,8 @@ func main() {
 		}
 	}()
 
-	// tick
 	go s.TickEvery(5 * time.Second)
 
 	time.Sleep(time.Minute)
+	s.Stop()
 }

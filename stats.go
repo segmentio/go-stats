@@ -14,6 +14,7 @@ type Printfer interface {
 type Stats struct {
 	t         map[string]int64
 	m         map[string]int64
+	exit      chan struct{}
 	lastReset time.Time
 	sync.Mutex
 }
@@ -23,18 +24,30 @@ func New() *Stats {
 	return &Stats{
 		t:         make(map[string]int64),
 		m:         make(map[string]int64),
+		exit:      make(chan struct{}),
 		lastReset: time.Now(),
 	}
 }
 
+// Stop ticker.
+func (s *Stats) Stop() {
+	close(s.exit)
+}
+
+// TickEvery `d` to stderr via the std log package.
 func (s *Stats) TickEvery(d time.Duration) {
 	s.TickEveryTo(d, log.New(os.Stderr, "stats ", log.LstdFlags))
 }
 
+// TickEveryTo `d` to the given Printf-er.
 func (s *Stats) TickEveryTo(d time.Duration, p Printfer) {
 	for {
-		time.Sleep(d)
-		s.Write(p)
+		select {
+		case <-time.Tick(d):
+			s.Write(p)
+		case <-s.exit:
+			return
+		}
 	}
 }
 
