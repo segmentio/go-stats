@@ -1,5 +1,6 @@
 package stats
 
+import "github.com/dustin/go-humanize"
 import "time"
 import "sync"
 import "log"
@@ -94,6 +95,8 @@ func (s *Stats) Write(p Printfer) {
 
 	p.Printf("stats:\n")
 	for k, v := range s.m {
-		p.Printf("  %15s %.2f/s tick=%d total=%d\n", k, float64(v)/secs, v, s.t[k])
+		value := humanize.Comma(v)
+		total := humanize.Comma(s.t[k])
+		p.Printf("  %15s %.2f/s tick=%s total=%s\n", k, float64(v)/secs, value, total)
 	}
 }
