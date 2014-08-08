@@ -72,6 +72,13 @@ func (s *Stats) Get(name string) int64 {
 	return s.m[name]
 }
 
+// GetTotal the value of `name` or 0.
+func (s *Stats) GetTotal(name string) int64 {
+	s.Lock()
+	defer s.Unlock()
+	return s.t[name]
+}
+
 // Reset statistics.
 func (s *Stats) Reset() {
 	s.Lock()
