@@ -37,7 +37,7 @@ func (s *Stats) Stop() {
 
 // TickEvery `d` to stderr via the std log package.
 func (s *Stats) TickEvery(d time.Duration) {
-	s.TickEveryTo(d, log.New(os.Stderr, "stats ", log.LstdFlags))
+	s.TickEveryTo(d, log.New(os.Stderr, "", log.LstdFlags))
 }
 
 // TickEveryTo `d` to the given Printf-er.
@@ -104,6 +104,6 @@ func (s *Stats) Write(p Printfer) {
 	for k, v := range s.m {
 		value := humanize.Comma(v)
 		total := humanize.Comma(s.t[k])
-		p.Printf("  %15s %.2f/s tick=%s total=%s\n", k, float64(v)/secs, value, total)
+		p.Printf("  %s %.2f/s tick=%s total=%s\n", k, float64(v)/secs, value, total)
 	}
 }
