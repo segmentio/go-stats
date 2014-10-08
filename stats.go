@@ -42,11 +42,14 @@ func (s *Stats) TickEvery(d time.Duration) {
 
 // TickEveryTo `d` to the given Printf-er.
 func (s *Stats) TickEveryTo(d time.Duration, p Printfer) {
+	tick := time.NewTicker(d)
+
 	for {
 		select {
-		case <-time.Tick(d):
+		case <-tick.C:
 			s.Write(p)
 		case <-s.exit:
+			tick.Stop()
 			return
 		}
 	}
