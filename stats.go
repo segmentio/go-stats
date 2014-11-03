@@ -6,8 +6,8 @@ import "sync"
 import "log"
 import "os"
 
-// Printfer interface.
-type Printfer interface {
+// printfer interface.
+type printfer interface {
 	Printf(string, ...interface{})
 }
 
@@ -15,7 +15,7 @@ type Printfer interface {
 type Stats struct {
 	t         map[string]int64
 	m         map[string]int64
-	exit      chan struct{}
+	tick      *time.Ticker
 	lastReset time.Time
 	sync.Mutex
 }
@@ -25,14 +25,13 @@ func New() *Stats {
 	return &Stats{
 		t:         make(map[string]int64),
 		m:         make(map[string]int64),
-		exit:      make(chan struct{}),
 		lastReset: time.Now(),
 	}
 }
 
 // Stop ticker.
 func (s *Stats) Stop() {
-	close(s.exit)
+	s.tick.Stop()
 }
 
 // TickEvery `d` to stderr via the std log package.
@@ -41,17 +40,10 @@ func (s *Stats) TickEvery(d time.Duration) {
 }
 
 // TickEveryTo `d` to the given Printf-er.
-func (s *Stats) TickEveryTo(d time.Duration, p Printfer) {
-	tick := time.NewTicker(d)
-
-	for {
-		select {
-		case <-tick.C:
-			s.Write(p)
-		case <-s.exit:
-			tick.Stop()
-			return
-		}
+func (s *Stats) TickEveryTo(d time.Duration, p printfer) {
+	s.tick = time.NewTicker(d)
+	for _ = range s.tick.C {
+		s.Write(p)
 	}
 }
 
@@ -95,7 +87,7 @@ func (s *Stats) Reset() {
 }
 
 // Write to the given printer.
-func (s *Stats) Write(p Printfer) {
+func (s *Stats) Write(p printfer) {
 	s.Lock()
 
 	defer s.Reset()

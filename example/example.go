@@ -16,6 +16,6 @@ func main() {
 
 	go s.TickEvery(5 * time.Second)
 
-	time.Sleep(time.Minute)
+	time.Sleep(30 * time.Second)
 	s.Stop()
 }
