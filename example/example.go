@@ -1,6 +1,8 @@
 package main
 
 import "github.com/segmentio/go-stats"
+import "github.com/segmentio/go-log"
+import "math/rand"
 import "time"
 
 func main() {
@@ -8,9 +10,10 @@ func main() {
 
 	go func() {
 		for {
+			log.Info("doing stuff")
 			s.IncrBy("messages", 5)
 			s.Incr("errors")
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(time.Duration(rand.Intn(200)) * time.Millisecond)
 		}
 	}()
 
