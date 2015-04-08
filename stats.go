@@ -95,8 +95,10 @@ func (s *Stats) Write(p printfer) {
 
 	secs := time.Since(s.lastReset).Seconds()
 
+	p.Printf("stats: –––")
 	for k, v := range s.m {
 		total := humanize.Comma(s.t[k])
 		p.Printf("stats: %s %.2f/s (%s)\n", k, float64(v)/secs, total)
 	}
+	p.Printf("stats: –––")
 }
