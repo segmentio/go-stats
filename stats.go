@@ -93,6 +93,10 @@ func (s *Stats) Write(p printfer) {
 	defer s.Reset()
 	defer s.Unlock()
 
+	if len(s.m) == 0 {
+		return
+	}
+
 	secs := time.Since(s.lastReset).Seconds()
 
 	p.Printf("stats: –––")
