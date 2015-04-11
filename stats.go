@@ -3,12 +3,20 @@ package stats
 import "github.com/dustin/go-humanize"
 import "time"
 import "sync"
+import "sort"
 import "log"
+import "fmt"
 import "os"
 
-// printfer interface.
-type printfer interface {
-	Printf(string, ...interface{})
+// logger interface.
+type logger interface {
+	Output(int, string) error
+}
+
+// stat struct.
+type stat struct {
+	name  string
+	value int64
 }
 
 // Stats struct.
@@ -36,14 +44,14 @@ func (s *Stats) Stop() {
 
 // TickEvery `d` to stderr via the std log package.
 func (s *Stats) TickEvery(d time.Duration) {
-	s.TickEveryTo(d, log.New(os.Stderr, "", log.LstdFlags))
+	s.TickEveryTo(d, log.New(os.Stderr, "stats ", log.LstdFlags))
 }
 
-// TickEveryTo `d` to the given Printf-er.
-func (s *Stats) TickEveryTo(d time.Duration, p printfer) {
+// TickEveryTo `d` to the given logger.
+func (s *Stats) TickEveryTo(d time.Duration, log logger) {
 	s.tick = time.NewTicker(d)
 	for _ = range s.tick.C {
-		s.Write(p)
+		s.Write(log)
 	}
 }
 
@@ -74,6 +82,14 @@ func (s *Stats) GetTotal(name string) int64 {
 	return s.t[name]
 }
 
+// Slice of stats.
+func (s *Stats) slice() (ret []*stat) {
+	for k, v := range s.m {
+		ret = append(ret, &stat{k, v})
+	}
+	return
+}
+
 // Reset statistics.
 func (s *Stats) Reset() {
 	s.Lock()
@@ -86,8 +102,8 @@ func (s *Stats) Reset() {
 	s.lastReset = time.Now()
 }
 
-// Write to the given printer.
-func (s *Stats) Write(p printfer) {
+// Write to the given logger.
+func (s *Stats) Write(log logger) {
 	s.Lock()
 
 	defer s.Reset()
@@ -97,12 +113,15 @@ func (s *Stats) Write(p printfer) {
 		return
 	}
 
+	stats := s.slice()
+	sort.Sort(byName(stats))
+
 	secs := time.Since(s.lastReset).Seconds()
 
-	p.Printf("stats: –––")
-	for k, v := range s.m {
-		total := humanize.Comma(s.t[k])
-		p.Printf("stats: %s %.2f/s (%s)\n", k, float64(v)/secs, total)
+	log.Output(2, fmt.Sprintf("–––"))
+	for _, stat := range stats {
+		total := humanize.Comma(s.t[stat.name])
+		log.Output(2, fmt.Sprintf("%s %.2f/s (%s)\n", stat.name, float64(stat.value)/secs, total))
 	}
-	p.Printf("stats: –––")
+	log.Output(2, fmt.Sprintf("–––"))
 }
