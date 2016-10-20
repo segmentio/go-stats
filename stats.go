@@ -120,7 +120,7 @@ func (s *Stats) Write(log LogFunc) {
 
 	for _, stat := range stats {
 		total := humanize.Comma(s.t[stat.name])
-		log("%s %.2f/s (%s)\n", stat.name, float64(stat.value)/secs, total)
+		log("%s %.2f/s (%s)", stat.name, float64(stat.value)/secs, total)
 	}
 
 	log("---")
