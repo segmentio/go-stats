@@ -50,9 +50,9 @@ func (s *Stats) TickEvery(d time.Duration) {
 // TickEveryTo `d` to the given logger.
 func (s *Stats) TickEveryTo(d time.Duration, log LogFunc) {
 	s.Lock()
-	defer s.Unlock()
-
 	s.tick = time.NewTicker(d)
+	s.Unlock()
+
 	for _ = range s.tick.C {
 		s.Write(log)
 	}
