@@ -24,7 +24,8 @@ func main() {
     }
   }()
 
-  go s.TickEvery(5 * time.Second)
+  s.TickEvery(5 * time.Second)
+  defer s.Stop()
 
   time.Sleep(time.Minute)
 }
