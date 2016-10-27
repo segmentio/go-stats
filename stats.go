@@ -53,9 +53,11 @@ func (s *Stats) TickEveryTo(d time.Duration, log LogFunc) {
 	s.tick = time.NewTicker(d)
 	s.Unlock()
 
-	for range s.tick.C {
-		s.Write(log)
-	}
+	go func() {
+		for range s.tick.C {
+			s.Write(log)
+		}
+	}()
 }
 
 // Incr increments the stat `name`.
