@@ -5,13 +5,10 @@ import "time"
 import "sync"
 import "sort"
 import "log"
-import "fmt"
 import "os"
 
-// logger interface.
-type logger interface {
-	Output(int, string) error
-}
+// LogFunc interface.
+type LogFunc func(fmt string, v ...interface{})
 
 // stat struct.
 type stat struct {
@@ -39,18 +36,24 @@ func New() *Stats {
 
 // Stop ticker.
 func (s *Stats) Stop() {
+	s.Lock()
+	defer s.Unlock()
 	s.tick.Stop()
 }
 
 // TickEvery `d` to stderr via the std log package.
 func (s *Stats) TickEvery(d time.Duration) {
-	s.TickEveryTo(d, log.New(os.Stderr, "stats ", log.LstdFlags))
+	logger := log.New(os.Stderr, "stats ", log.LstdFlags)
+	s.TickEveryTo(d, logger.Printf)
 }
 
 // TickEveryTo `d` to the given logger.
-func (s *Stats) TickEveryTo(d time.Duration, log logger) {
+func (s *Stats) TickEveryTo(d time.Duration, log LogFunc) {
+	s.Lock()
 	s.tick = time.NewTicker(d)
-	for _ = range s.tick.C {
+	s.Unlock()
+
+	for range s.tick.C {
 		s.Write(log)
 	}
 }
@@ -103,7 +106,7 @@ func (s *Stats) Reset() {
 }
 
 // Write to the given logger.
-func (s *Stats) Write(log logger) {
+func (s *Stats) Write(log LogFunc) {
 	s.Lock()
 
 	defer s.Reset()
@@ -118,10 +121,12 @@ func (s *Stats) Write(log logger) {
 
 	secs := time.Since(s.lastReset).Seconds()
 
-	log.Output(2, fmt.Sprintf("–––"))
+	log("")
+
 	for _, stat := range stats {
 		total := humanize.Comma(s.t[stat.name])
-		log.Output(2, fmt.Sprintf("%s %.2f/s (%s)\n", stat.name, float64(stat.value)/secs, total))
+		log("%s %.2f/s (%s)", stat.name, float64(stat.value)/secs, total)
 	}
-	log.Output(2, fmt.Sprintf("–––"))
+
+	log("")
 }
